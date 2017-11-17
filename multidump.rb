@@ -136,7 +136,7 @@ WHERE t.constraint_type='PRIMARY KEY'
   # --single-transaction --no-create-info >> dumpfile.sql
   def mysqldump(*args)
     str = Array.new(args)
-    (["mysqldump", login_params, db]+[str]).join(" ")
+    (["mysqldump", login_params, db, dbopts]+[str]).join(" ")
   end
 
   private
@@ -182,6 +182,11 @@ WHERE t.constraint_type='PRIMARY KEY'
 
   def pass
     opts[:pass]
+  end
+
+  # default db options
+  def dbopts
+    opts[:dbopts]||"--max_allowed_packet=500M"
   end
 
   def compress?

@@ -15,7 +15,7 @@ The tool runs in 3 steps:
 
 Installation
 ---
-gem install parallel optparse
+gem install parallel 
 
 ruby multidump.rb db_name [options] 
 ruby multirestore.rb db_name [options]
