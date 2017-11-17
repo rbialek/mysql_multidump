@@ -12,11 +12,6 @@ The tool runs in 3 steps:
 2. Fetch last primary key for each table.
 3. Dump tables one by one using the last primary key as a limiter.
 
-Design 
----
-
-We assume that 
-
 
 Installation
 ---
