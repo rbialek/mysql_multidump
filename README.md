@@ -15,9 +15,15 @@ The tool runs in 3 steps:
 
 Installation
 ---
+multidump requires functional mysql and mysqldump, as well as:
+
 gem install parallel 
 
-ruby multidump.rb db_name [options] 
+To run the dump call:
+ruby multidump.rb db_name [options]
+
+Then you can restore the files 1-by one. 
+#  TODO - we will add a multirestore.rb script
 ruby multirestore.rb db_name [options]
 
 Limitations
