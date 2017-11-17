@@ -1,7 +1,8 @@
 # mysql_multidump
 Created by Robert Bialek rbialek@gmail.com, 2017-11-17
 
-A utility to dump multiple database tables, in parallel, to distinct files without a global lock.
+A utility to dump multiple database tables, in parallel, to distinct files without a global lock 
+using mysql and mysqldump tools.
 
 The goal is to solve the challenge of dumping large databases from Amazon RDS/Aurora databases. 
 The main applications are Ruby On Rails databases, where tables usually have a primary key :id.

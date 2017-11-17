@@ -116,11 +116,15 @@ WHERE t.constraint_type='PRIMARY KEY'
     ret   = [table]
     ret << "--where '#{limit}'" unless blank?(limit)
 
+#    "rm -f #{file}; " +
+    mysqldump(*ret) + compressor + target
+  end
+
+  # return the name of the target
+  def target
     file = "#{db}/#{table}.sql"
     file += "." + compressor(false) if compress? # table.sql.bzip2
-
-    "rm -f #{file}; " +
-        mysqldump(*ret) + compressor + " > #{file}"
+    " > #{file}"
   end
 
   # execute mysql command
