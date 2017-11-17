@@ -1,14 +1,15 @@
 require 'optparse'
 require 'parallel'
 
-class Multidump < Struct.new(:host, :username, :password, :db)
+class Multidump < Struct.new(:db, :opts)
+
   attr_accessor :bg # run in background
   # @return -h<hostname> -u<username> -p <databasename>
   def login_params
     ret = []
     ret << "-h" + host unless blank?(host)
-    ret << "-u" + username unless blank?(username)
-    ret << "-p" + password unless blank?(password)
+    ret << "-u" + username unless blank?(user)
+    ret << "-p" + password unless blank?(pass)
     ret.join(" ")
   end
 
@@ -116,9 +117,10 @@ WHERE t.constraint_type='PRIMARY KEY'
     ret << "--where '#{limit}'" unless blank?(limit)
 
     file = "#{db}/#{table}.sql"
+    file += "." + compressor(false) if compress? # table.sql.bzip2
 
-    "mkdir -p #{db}; rm -f #{file}; " +
-        mysqldump(*ret) + " > #{file}"
+    "rm -f #{file}; " +
+        mysqldump(*ret) + compressor + " > #{file}"
   end
 
   # execute mysql command
@@ -168,6 +170,31 @@ WHERE t.constraint_type='PRIMARY KEY'
     }
     ret
   end
+
+  # option accessors
+  def host
+    opts[:host]
+  end
+
+  def user
+    opts[:user]
+  end
+
+  def pass
+    opts[:pass]
+  end
+
+  def compress?
+    !compressor.empty?
+  end
+
+  def compressor(with_pipe = true)
+    if c = opts[:compressor]
+      with_pipe ? " | " + c : c
+    else
+      ""
+    end
+  end
 end
 
 
@@ -192,7 +219,10 @@ end
 def multidump(db, opts)
   opts[:parallelism] ||= 4
   puts "multidump #{db}: #{opts.inspect}"
-  db = Multidump.new(opts[:host], opts[:user], opts[:pass], db)
+
+  Runner.run "mkdir -p #{db}"
+  db = Multidump.new(db, opts)
+
   Runner.run_in_parallel(db.generate_all_steps, opts[:parallelism])
 rescue => e
   puts "Error: #{e.message}"
@@ -204,15 +234,16 @@ USAGE = "Usage:
 multidump.rb DB [-hHOST -uUSER -pPASS] \t# generates DB/tables.sql
 multidump.rb -H / --help               \t# to show help
 "
-opts  = {}
+opts  = {compressor: 'bzip2', parallelism: 4}
 dbs   = OptionParser.new do |parser|
   parser.banner = USAGE
 
   parser.on('-h', '--host host', 'Source host') {|v| opts[:host] = v}
   parser.on('-u', '--user name', 'Database user name') {|v| opts[:user] = v}
-  parser.on('-p', '--password pass', 'Database user password') {|v| opts[:pass] = v}
+  parser.on('-p', '--pass pass', 'Database user password') {|v| opts[:pass] = v}
   # opts.on('-o', '--output filename (defaults to DB.sql)') {|v| opts[:file] = v}
   parser.on('-n', 'Number of parallel processes (default 4)') {|v| opts[:parallelism] = v}
+  parser.on('-c', '--compressor compressor (gzip/bzip2 defualt bzip2)') {|v| opts[:compressor] = v}
 
   # No argument, shows at tail.  This will print an options summary.
   # Try it and see!
