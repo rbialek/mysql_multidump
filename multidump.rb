@@ -8,8 +8,8 @@ class Multidump < Struct.new(:db, :opts)
   def login_params
     ret = []
     ret << "-h" + host unless blank?(host)
-    ret << "-u" + username unless blank?(user)
-    ret << "-p" + password unless blank?(pass)
+    ret << "-u" + user unless blank?(user)
+    ret << "-p" + pass unless blank?(pass)
     ret.join(" ")
   end
 
@@ -190,11 +190,12 @@ WHERE t.constraint_type='PRIMARY KEY'
   end
 
   def compress?
-    !compressor.empty?
+    opts[:compressor].to_s.size>2
   end
 
   def compressor(with_pipe = true)
-    if c = opts[:compressor]
+    if compress?
+      c = opts[:compressor]
       with_pipe ? " | " + c : c
     else
       ""
